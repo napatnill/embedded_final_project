@@ -9,13 +9,11 @@
 
 # IDE-specific files and directories
 .metadata/
-.metadata
 .settings
 /.settings/
 /.project
 /.cproject
 /.mxproject
-/.metadata/
 /.idea/
 /.vscode/
 
