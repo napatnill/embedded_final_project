@@ -29,7 +29,17 @@ void reconnect() {
     }
   }
 }
-
+void callback(char* topic, byte* payload, unsigned int length) {
+    Serial.print("Message arrived [");
+    Serial.print(topic);
+    Serial.print("] ");
+    String message;
+    for (int i = 0; i < length; i++) {
+        message = message + (char)payload[i];
+    }
+    Serial.println(message);
+    
+}
 
 void setup() {
 
@@ -51,17 +61,7 @@ void setup() {
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
 }
-void callback(char* topic, byte* payload, unsigned int length) {
-    Serial.print("Message arrived [");
-    Serial.print(topic);
-    Serial.print("] ");
-    String message;
-    for (int i = 0; i < length; i++) {
-        message = message + (char)payload[i];
-    }
-    Serial.println(message);
-    
-}
+
 void loop() {
 
 
@@ -118,14 +118,18 @@ void loop() {
 
 
   data += "}}";
-
     if (!client.connected()) {
       reconnect();
     }
     client.loop();
+    
     data.toCharArray(msg, (data.length()+1));
     Serial.println(msg);
     client.publish("@shadow/data/update", msg);
     
   }
+  if (!client.connected()) {
+      reconnect();
+    }
+    client.loop();
 }
