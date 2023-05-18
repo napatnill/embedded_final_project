@@ -49,8 +49,19 @@ void setup() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   client.setServer(mqtt_server, mqtt_port);
+  client.setCallback(callback);
 }
-
+void callback(char* topic, byte* payload, unsigned int length) {
+    Serial.print("Message arrived [");
+    Serial.print(topic);
+    Serial.print("] ");
+    String message;
+    for (int i = 0; i < length; i++) {
+        message = message + (char)payload[i];
+    }
+    Serial.println(message);
+    
+}
 void loop() {
 
 
