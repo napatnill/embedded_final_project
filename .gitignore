@@ -1,2 +1,40 @@
 # Ignore Arduino .ino files
 *.ino
+# Compiled output
+/build/
+/bin/
+/obj/
+
+# Dependency directories
+/Inc/ThirdParty/
+/Drivers/
+
+# IDE-specific files and directories
+/.settings/
+/.project
+/.cproject
+/.mxproject
+/.metadata/
+/.idea/
+/.vscode/
+
+# User-specific files and directories
+/STM32CubeIDE/
+/.DS_Store
+/.cache/
+
+# Debugging files
+/*.launch
+/*.launch.py
+/*.gdb
+
+# Build artifacts
+/*.hex
+/*.bin
+
+# Miscellaneous
+/*.swp
+/*.swo
+/*.log
+/*.zip
+/*.rar
