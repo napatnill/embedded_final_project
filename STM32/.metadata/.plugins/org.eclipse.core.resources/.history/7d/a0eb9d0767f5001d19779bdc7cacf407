@@ -208,7 +208,7 @@ double read_dust_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GP
 	delay(9680);
 
 	calcVoltage = voMeasured*(5.0/4096);
-		dustDensity = 170*calcVoltage-100;
+		dustDensity = 170*calcVoltage-0.1;
 
 	  if ( dustDensity < 0)
 	  {
