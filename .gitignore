@@ -1,5 +1,3 @@
-# Ignore Arduino .ino files
-*.ino
 # Compiled output
 /build/
 /bin/
