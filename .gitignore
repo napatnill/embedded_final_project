@@ -8,6 +8,8 @@
 /Drivers/
 
 # IDE-specific files and directories
+.metadata
+.settings
 /.settings/
 /.project
 /.cproject
