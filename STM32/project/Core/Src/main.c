@@ -299,7 +299,7 @@ read_sensor(&hadc1, GPIOA, GPIO_PIN_6);
 	HAL_UART_Transmit(&huart1, buffer, sz, HAL_MAX_DELAY);
 
 	timechk=0;
-	HAL_Delay(1000);
+	HAL_Delay(10000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

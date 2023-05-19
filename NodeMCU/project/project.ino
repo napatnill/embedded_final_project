@@ -62,6 +62,7 @@ void setup() {
   client.setCallback(callback);
 }
 
+
 void loop() {
 
 
@@ -114,7 +115,14 @@ void loop() {
       data += s[i];
       i++;
     }
-
+   i++;
+    data += ", \"gas\":";
+    while (i < size) {
+      if (s[i] == '|')
+        break;
+      data += s[i];
+      i++;
+    }
 
 
   data += "}}";
@@ -128,8 +136,5 @@ void loop() {
     client.publish("@shadow/data/update", msg);
     
   }
-  if (!client.connected()) {
-      reconnect();
-    }
-    client.loop();
+  
 }

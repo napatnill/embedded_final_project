@@ -1712,7 +1712,6 @@ void read_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
  8001236:	f7ff fcbf 	bl	8000bb8 <__aeabi_d2f>
  800123a:	4603      	mov	r3, r0
  800123c:	62bb      	str	r3, [r7, #40]	; 0x28
-	//gas_voltage += adcbuff[1];
 	dust_voltage+= calcVoltage;
  800123e:	ed97 7a0b 	vldr	s14, [r7, #44]	; 0x2c
  8001242:	edd7 7a06 	vldr	s15, [r7, #24]
@@ -2301,7 +2300,6 @@ read_sensor(&hadc1, GPIOA, GPIO_PIN_6);
  8001764:	4b4b      	ldr	r3, [pc, #300]	; (8001894 <main+0x54c>)
  8001766:	681b      	ldr	r3, [r3, #0]
  8001768:	f8c7 30ac 	str.w	r3, [r7, #172]	; 0xac
-	  //gas = read_gas();
 	  gas=dustandgas[1];
  800176c:	4b49      	ldr	r3, [pc, #292]	; (8001894 <main+0x54c>)
  800176e:	685b      	ldr	r3, [r3, #4]
@@ -2412,9 +2410,8 @@ read_sensor(&hadc1, GPIOA, GPIO_PIN_6);
  800187a:	4b0e      	ldr	r3, [pc, #56]	; (80018b4 <main+0x56c>)
  800187c:	2200      	movs	r2, #0
  800187e:	701a      	strb	r2, [r3, #0]
-
-	 	HAL_Delay(1000);
- 8001880:	f44f 707a 	mov.w	r0, #1000	; 0x3e8
+	HAL_Delay(10000);
+ 8001880:	f242 7010 	movw	r0, #10000	; 0x2710
  8001884:	f000 fd8a 	bl	800239c <HAL_Delay>
   { DHT22_Start(GPIOB, GPIO_PIN_0);
  8001888:	e587      	b.n	800139a <main+0x52>
