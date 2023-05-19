@@ -165,7 +165,7 @@ double read_dust_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GP
 	delay(9680);
 
 	calcVoltage = voMeasured*(5.0/4096);
-		dustDensity = 170*calcVoltage-100;
+	dustDensity = 170*calcVoltage-100;
 
 	  if ( dustDensity < 0)
 	  {
@@ -174,6 +174,17 @@ double read_dust_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GP
 	  return dustDensity;
 
 }
+double read_gas(){
+	int voMeasured = 0;
+	double dust = 0;
+	HAL_ADC_PollForConversion(hadc, HAL_MAX_DELAY);
+	voMeasured = HAL_ADC_GetValue(hadc);
+	dust = voMeasured;
+	return dust
+}
+
+
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 	timechk++;
@@ -223,7 +234,7 @@ int main(void)
 	  HAL_TIM_Base_Start_IT(&htim3);
 	  HAL_TIM_Base_Start_IT(&htim2);
 	uint16_t pinar[3]={GPIO_PIN_0,GPIO_PIN_1,GPIO_PIN_4};
-	float tem,hu;
+	float tem,hu,dust,gas;
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, 1);
   /* USER CODE END 2 */
 
@@ -252,6 +263,9 @@ int main(void)
 			  + 0.00072546 * tem * hu * hu - 0.000003582 * tem * tem * hu * hu;
 
 
+	  dust = read_dust_sensor(&hadc1, GPIOA, GPIO_PIN_6);
+	  gas = read_gas();
+
 	if(hu>100 || tem > 50 || HI > 70){
 		HAL_Delay(100);
 		continue;
@@ -260,8 +274,8 @@ int main(void)
 	uint8_t sz=0;
 
 	char buffer[150]="";
-	sprintf(buffer,"%.1f|%.1f|%.2f|%.2f\n",
-	hu,tem,read_dust_sensor(&hadc1, GPIOA, GPIO_PIN_6),HI);
+	sprintf(buffer,"%.1f|%.1f|%.2f|%.2f|%.2f\n",
+	hu,tem,dust,HI,gas);
 
 	while(buffer[sz])
 			sz++;
@@ -349,13 +363,13 @@ static void MX_ADC1_Init(void)
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ScanConvMode = ENABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 2;
   hadc1.Init.DMAContinuousRequests = DISABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -368,6 +382,15 @@ static void MX_ADC1_Init(void)
   sConfig.Channel = ADC_CHANNEL_11;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_0;
+  sConfig.Rank = 2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
