@@ -32,8 +32,8 @@ void reconnect() {
       client.subscribe("@msg/min_gas");
       client.subscribe("@msg/min_humidity");
       client.subscribe("@msg/min_temperature");
-      
-      
+
+
 
 
 
@@ -41,7 +41,7 @@ void reconnect() {
       Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println("try again in 5 seconds");
-      delay(5000);
+      delay(10000);
     }
   }
 }
@@ -66,8 +66,7 @@ void setup() {
   Serial.println(WiFi.localIP());
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
- // client.publish("@shadow/data/get", "");
-
+  // client.publish("@shadow/data/get", "");
 }
 
 const unsigned long RESPONSE_TIMEOUT = 10000;  // Timeout value in milliseconds
@@ -79,61 +78,70 @@ bool recp = false;
 unsigned long responseTimer = 0;
 unsigned int retryCount = 0;
 
+float mn_du;
+float mn_gas;
+float mn_hu;
+float mn_tem;
+int mode;
+float mx_du;
+float mx_gas;
+float mx_hu;
+float mx_tem;
+
+
 void callback(char* topic, byte* payload, unsigned int length) {
-    Serial.print("Message arrived [");
-    Serial.print(topic);
-    Serial.print("] ");
-    String message;
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  String message;
 
 
-    for (int i = 0; i < length; i++) {
-        message = message + (char)payload[i];
-    }
-    Serial.println(message);
+  for (int i = 0; i < length; i++) {
+    message = message + (char)payload[i];
+  }
+  Serial.println(message);
 
-  StaticJsonDocument<512> doc;
-  deserializeJson(doc, payload, length);
 
-    if(String(topic) == "@private/shadow/data/get/response"){
-      responseReceived = true;
 
-      float mn_du = doc["data"]["mn_du"];
-      float mn_gas = doc["data"]["mn_gas"];
-      float mn_hu = doc["data"]["mn_hu"];
-      float mn_tem = doc["data"]["mn_tem"];
-      int mode = doc["data"]["mode"];
-      float mx_du = doc["data"]["mx_du"];
-      float mx_gas = doc["data"]["mx_gas"];
-      float mx_hu = doc["data"]["mx_hu"];
-      float mx_tem = doc["data"]["mx_tem"];
+  if (String(topic) == "@private/shadow/data/get/response") {
+    StaticJsonDocument<512> doc;
+    deserializeJson(doc, payload, length);
+    responseReceived = true;
 
-        Serial.println(mn_du);
-        Serial.println(mn_gas);
-  Serial.println(mn_hu);
-  Serial.println(mn_tem);
-  Serial.println(mode);
-  Serial.println(mx_du);
-  Serial.println(mx_gas);
-  Serial.println(mx_hu);
-  Serial.println(mx_tem);
+    mn_du = doc["data"]["mn_du"];
+    mn_gas = doc["data"]["mn_gas"];
+    mn_hu = doc["data"]["mn_hu"];
+    mn_tem = doc["data"]["mn_tem"];
+    mode = doc["data"]["mode"];
+    mx_du = doc["data"]["mx_du"];
+    mx_gas = doc["data"]["mx_gas"];
+    mx_hu = doc["data"]["mx_hu"];
+    mx_tem = doc["data"]["mx_tem"];
 
-    }
-    
-    
+
+    Serial.println(mn_du);
+    Serial.println(mn_gas);
+    Serial.println(mn_hu);
+    Serial.println(mn_tem);
+    Serial.println(mode);
+    Serial.println(mx_du);
+    Serial.println(mx_gas);
+    Serial.println(mx_hu);
+    Serial.println(mx_tem);
+  }
 }
 
 void loop() {
   if (!client.connected()) {
     reconnect();
   }
-  
+
   client.loop();
 
-if(!recp){
-  initia();
-  delay(100);
-}
-else{
+  if (!recp) {
+    initia();
+    delay(100);
+  } else {
     comu();
   }
 
@@ -141,7 +149,7 @@ else{
 }
 
 
-void initia(){
+void initia() {
   if (initialized == 0) {
     if (!waitingForResponse) {
       Serial.println("Requesting shadow data");
@@ -155,7 +163,7 @@ void initia(){
         if (responseReceived) {
           Serial.println("Shadow data received");
           recp = true;
-         
+
         } else {
           Serial.println("Shadow data request timeout");
           retryCount++;
@@ -177,8 +185,8 @@ void initia(){
     }
   }
 }
-void comu(){
- if (uart.available()) {
+void comu() {
+  if (uart.available()) {
 
     String s = "";
     char c = 0;
@@ -193,11 +201,10 @@ void comu(){
 
 
     Serial.println(s);
-    if(s.length()>=32)
-      {
-        Serial.println("bad receive");
-        return;
-      }
+    if (s.length() >= 32) {
+      Serial.println("bad receive");
+      return;
+    }
 
     String data = "{\"data\": {\"hu\":";
     int i = 0, size = s.length();
@@ -231,7 +238,7 @@ void comu(){
       data += s[i];
       i++;
     }
-   i++;
+    i++;
     data += ", \"gas\":";
     while (i < size) {
       if (s[i] == '|')
@@ -241,23 +248,20 @@ void comu(){
     }
 
 
-  data += "}}";
-  
-    
-    data.toCharArray(msg, (data.length()+1));
+    data += "}}";
+
+
+    data.toCharArray(msg, (data.length() + 1));
     Serial.println(msg);
 
     if (!client.connected()) {
       reconnect();
     }
-    
+
     client.loop();
     client.publish("@shadow/data/update", msg);
     // delay(5000);
     //  client.loop();
     //   client.publish("@shadow/data/get", "");
-    
-
   }
-
 }
