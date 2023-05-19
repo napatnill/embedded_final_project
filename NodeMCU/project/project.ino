@@ -24,14 +24,14 @@ void reconnect() {
       Serial.println("connected");
       client.subscribe("@private/#");
       client.subscribe("@msg/mode");
-      client.subscribe("@msg/max_dustdensity");
-      client.subscribe("@msg/max_temperature");
-      client.subscribe("@msg/max_humidity");
-      client.subscribe("@msg/max_gas");
-      client.subscribe("@msg/min_dustdensity");
-      client.subscribe("@msg/min_gas");
-      client.subscribe("@msg/min_humidity");
-      client.subscribe("@msg/min_temperature");
+      client.subscribe("@msg/mx_du");
+      client.subscribe("@msg/mx_tem");
+      client.subscribe("@msg/mx_hu");
+      client.subscribe("@msg/mx_gas");
+      client.subscribe("@msg/mn_du");
+      client.subscribe("@msg/mn_gas");
+      client.subscribe("@msg/mn_hu");
+      client.subscribe("@msg/mn_tem");
 
 
 
@@ -66,7 +66,6 @@ void setup() {
   Serial.println(WiFi.localIP());
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
-  // client.publish("@shadow/data/get", "");
 }
 
 const unsigned long RESPONSE_TIMEOUT = 10000;  // Timeout value in milliseconds
@@ -88,6 +87,12 @@ float mx_gas;
 float mx_hu;
 float mx_tem;
 
+float du;
+float hu;
+float tem;
+float gas;
+
+bool poweron = 0;
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
@@ -128,7 +133,91 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println(mx_gas);
     Serial.println(mx_hu);
     Serial.println(mx_tem);
+  } else if (String(topic) == "@msg/mode") {
+    mode = message.toInt();
+    Serial.println("mode value received: " + String(mode));
+    updateConfig();
   }
+
+  else if (String(topic) == "@msg/mn_du") {
+    mn_du = message.toFloat();
+    Serial.println("mn_du value received: " + String(mn_du));
+    updateConfig();
+  }
+
+  else if (String(topic) == "@msg/mn_gas") {
+    mn_gas = message.toFloat();
+    Serial.println("mn_gas value received: " + String(mn_gas));
+    updateConfig();
+  }
+
+  else if (String(topic) == "@msg/mn_hu") {
+    mn_hu = message.toFloat();
+    Serial.println("mn_hu value received: " + String(mn_hu));
+    updateConfig();
+  }
+
+  else if (String(topic) == "@msg/mn_tem") {
+    mn_tem = message.toFloat();
+    Serial.println("mn_tem value received: " + String(mn_tem));
+    updateConfig();
+  }
+
+  else if (String(topic) == "@msg/mx_du") {
+    mx_du = message.toFloat();
+    Serial.println("mx_du value received: " + String(mx_du));
+    updateConfig();
+  }
+
+  else if (String(topic) == "@msg/mx_gas") {
+    mx_gas = message.toFloat();
+    Serial.println("mx_gas value received: " + String(mx_gas));
+    updateConfig();
+  }
+
+  else if (String(topic) == "@msg/mx_hu") {
+    mx_hu = message.toFloat();
+    Serial.println("mx_hu value received: " + String(mx_hu));
+    updateConfig();
+  }
+
+  else if (String(topic) == "@msg/mx_tem") {
+    mx_tem = message.toFloat();
+    Serial.println("mx_tem value received: " + String(mx_tem));
+    updateConfig();
+  }
+}
+void updateConfig() {
+
+  String data = "{\"data\": {\"mode\":";
+  data += String(mode);
+  data += ", \"mn_du\":";
+  data += String(mn_du);
+  data += ", \"mn_gas\":";
+  data += String(mn_gas);
+  data += ", \"mn_hu\":";
+  data += String(mn_hu);
+  data += ", \"mn_tem\":";
+  data += String(mn_tem);
+  data += ", \"mx_du\":";
+  data += String(mx_du);
+  data += ", \"mx_gas\":";
+  data += String(mx_gas);
+  data += ", \"mx_hu\":";
+  data += String(mx_hu);
+  data += ", \"mx_tem\":";
+  data += String(mx_tem);
+  data += "}}";
+  char msga[200];
+  data.toCharArray(msga, (data.length() + 1));
+  Serial.println(msga);
+
+  if (!client.connected()) {
+    reconnect();
+  }
+
+  client.loop();
+  client.publish("@shadow/data/update", msga);
 }
 
 void loop() {
@@ -207,29 +296,39 @@ void comu() {
     }
 
     String data = "{\"data\": {\"hu\":";
+    String temp="";
     int i = 0, size = s.length();
     while (i < size) {
       if (s[i] == '|')
         break;
+      temp+=s[i];
       data += s[i];
       i++;
     }
+    hu = temp.toFloat();
+    temp="";
     i++;
     data += ", \"tem\":";
     while (i < size) {
       if (s[i] == '|')
         break;
+       temp+=s[i];
       data += s[i];
       i++;
     }
+    tem = temp.toFloat();
+    temp="";
     i++;
     data += ", \"du\":";
     while (i < size) {
       if (s[i] == '|')
         break;
+      temp+=s[i];
       data += s[i];
       i++;
     }
+    du = temp.toFloat();
+    temp="";
     i++;
     data += ", \"hi\":";
     while (i < size) {
@@ -243,10 +342,11 @@ void comu() {
     while (i < size) {
       if (s[i] == '|')
         break;
+       temp+=s[i];
       data += s[i];
       i++;
     }
-
+     gas = temp.toFloat();
 
     data += "}}";
 
@@ -260,6 +360,25 @@ void comu() {
 
     client.loop();
     client.publish("@shadow/data/update", msg);
+
+    if(mode==0){
+      poweron=0;
+    }
+    else if(mode==1){
+       poweron=1;
+    }
+    else {
+        if(poweron){
+            if(hu>mx_hu||du>mx_du||gas>mx_gas||tem>mx_tem)
+            poweron =0;
+        }
+        else
+        {
+          if(hu<mn_hu&&du<mn_du&&gas<mn_gas&&tem<mn_tem)
+            poweron =1;
+        }
+    }
+    digitalWrite(D0,poweron);
     // delay(5000);
     //  client.loop();
     //   client.publish("@shadow/data/get", "");
