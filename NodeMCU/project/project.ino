@@ -1,6 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <SoftwareSerial.h>
+#include <ArduinoJson.h>
 
 SoftwareSerial uart(D7, D8);
 
@@ -83,13 +84,39 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.print(topic);
     Serial.print("] ");
     String message;
+
+
     for (int i = 0; i < length; i++) {
         message = message + (char)payload[i];
     }
     Serial.println(message);
 
+  StaticJsonDocument<512> doc;
+  deserializeJson(doc, payload, length);
+
     if(String(topic) == "@private/shadow/data/get/response"){
       responseReceived = true;
+
+      float mn_du = doc["data"]["mn_du"];
+      float mn_gas = doc["data"]["mn_gas"];
+      float mn_hu = doc["data"]["mn_hu"];
+      float mn_tem = doc["data"]["mn_tem"];
+      int mode = doc["data"]["mode"];
+      float mx_du = doc["data"]["mx_du"];
+      float mx_gas = doc["data"]["mx_gas"];
+      float mx_hu = doc["data"]["mx_hu"];
+      float mx_tem = doc["data"]["mx_tem"];
+
+        Serial.println(mn_du);
+        Serial.println(mn_gas);
+  Serial.println(mn_hu);
+  Serial.println(mn_tem);
+  Serial.println(mode);
+  Serial.println(mx_du);
+  Serial.println(mx_gas);
+  Serial.println(mx_hu);
+  Serial.println(mx_tem);
+
     }
     
     
@@ -104,6 +131,7 @@ void loop() {
 
 if(!recp){
   initia();
+  delay(100);
 }
 else{
     comu();
