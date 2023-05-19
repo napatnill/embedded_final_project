@@ -167,9 +167,10 @@ void read_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 	delay(280);
 
 	HAL_ADC_Start_DMA(&hadc1,adcbuff , 2);
-	calcVoltage = adcbuff[0]*(5.0/4096);
+
+	dust_voltage+= adcbuff[0]*(5.0/4096);
 	gas_voltage += adcbuff[1]*(5.0/4096);
-	dust_voltage+= calcVoltage;
+
 
 	HAL_ADC_Stop_DMA(&hadc1);
 	delay(280);

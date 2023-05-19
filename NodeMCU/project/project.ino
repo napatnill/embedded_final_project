@@ -14,13 +14,28 @@ const char* mqtt_password = "K#B)I-w9ykoIK8poOJz_IjqZGK6F~$JV";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+bool initialized = 0;
 char msg[200];
 void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection…");
     if (client.connect(mqtt_Client, mqtt_username, mqtt_password)) {
       Serial.println("connected");
-      client.subscribe("@msg/led");
+      client.subscribe("@private/#");
+      client.subscribe("@msg/mode");
+      client.subscribe("@msg/max_dustdensity");
+      client.subscribe("@msg/max_temperature");
+      client.subscribe("@msg/max_humidity");
+      client.subscribe("@msg/max_gas");
+      client.subscribe("@msg/min_dustdensity");
+      client.subscribe("@msg/min_gas");
+      client.subscribe("@msg/min_humidity");
+      client.subscribe("@msg/min_temperature");
+      
+      
+
+
+
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -29,17 +44,7 @@ void reconnect() {
     }
   }
 }
-void callback(char* topic, byte* payload, unsigned int length) {
-    Serial.print("Message arrived [");
-    Serial.print(topic);
-    Serial.print("] ");
-    String message;
-    for (int i = 0; i < length; i++) {
-        message = message + (char)payload[i];
-    }
-    Serial.println(message);
-    
-}
+
 
 void setup() {
 
@@ -60,14 +65,92 @@ void setup() {
   Serial.println(WiFi.localIP());
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
+ // client.publish("@shadow/data/get", "");
+
+}
+
+const unsigned long RESPONSE_TIMEOUT = 10000;  // Timeout value in milliseconds
+const unsigned int MAX_RETRY_COUNT = 3;        // Maximum number of retries
+
+bool waitingForResponse = false;
+bool responseReceived = false;
+bool recp = false;
+unsigned long responseTimer = 0;
+unsigned int retryCount = 0;
+
+void callback(char* topic, byte* payload, unsigned int length) {
+    Serial.print("Message arrived [");
+    Serial.print(topic);
+    Serial.print("] ");
+    String message;
+    for (int i = 0; i < length; i++) {
+        message = message + (char)payload[i];
+    }
+    Serial.println(message);
+
+    if(String(topic) == "@private/shadow/data/get/response"){
+      responseReceived = true;
+    }
+    
+    
+}
+
+void loop() {
+  if (!client.connected()) {
+    reconnect();
+  }
+  
+  client.loop();
+
+if(!recp){
+  initia();
+}
+else{
+    comu();
+  }
+
+  //
 }
 
 
-void loop() {
+void initia(){
+  if (initialized == 0) {
+    if (!waitingForResponse) {
+      Serial.println("Requesting shadow data");
+      client.publish("@shadow/data/get", "", 1);
+      waitingForResponse = true;
+      responseTimer = millis();  // Start a timer to track the response time
+      retryCount = 0;            // Reset the retry count
+    } else {
+      // Check if a response has been received or timeout has occurred
+      if (responseReceived || (millis() - responseTimer) >= RESPONSE_TIMEOUT) {
+        if (responseReceived) {
+          Serial.println("Shadow data received");
+          recp = true;
+         
+        } else {
+          Serial.println("Shadow data request timeout");
+          retryCount++;
 
-
-
-  if (uart.available()) {
+          if (retryCount <= MAX_RETRY_COUNT) {
+            Serial.println("Retrying...");
+            waitingForResponse = false;
+            responseReceived = false;
+            responseTimer = 0;
+          } else {
+            Serial.println("Maximum retry count reached");
+            waitingForResponse = false;
+            responseReceived = false;
+            responseTimer = 0;
+            initialized = 1;  // Set initialized to 1 to proceed with other logic
+          }
+        }
+      }
+    }
+  }
+}
+void comu(){
+ if (uart.available()) {
 
     String s = "";
     char c = 0;
@@ -82,8 +165,13 @@ void loop() {
 
 
     Serial.println(s);
+    if(s.length()>=32)
+      {
+        Serial.println("bad receive");
+        return;
+      }
 
-    String data = "{\"data\": {\"humidity\":";
+    String data = "{\"data\": {\"hu\":";
     int i = 0, size = s.length();
     while (i < size) {
       if (s[i] == '|')
@@ -92,7 +180,7 @@ void loop() {
       i++;
     }
     i++;
-    data += ", \"temperature\":";
+    data += ", \"tem\":";
     while (i < size) {
       if (s[i] == '|')
         break;
@@ -100,7 +188,7 @@ void loop() {
       i++;
     }
     i++;
-    data += ", \"dustdensity\":";
+    data += ", \"du\":";
     while (i < size) {
       if (s[i] == '|')
         break;
@@ -108,7 +196,7 @@ void loop() {
       i++;
     }
     i++;
-    data += ", \"heatindex\":";
+    data += ", \"hi\":";
     while (i < size) {
       if (s[i] == '|')
         break;
@@ -126,15 +214,22 @@ void loop() {
 
 
   data += "}}";
-    if (!client.connected()) {
-      reconnect();
-    }
-    client.loop();
+  
     
     data.toCharArray(msg, (data.length()+1));
     Serial.println(msg);
-    client.publish("@shadow/data/update", msg);
+
+    if (!client.connected()) {
+      reconnect();
+    }
     
+    client.loop();
+    client.publish("@shadow/data/update", msg);
+    // delay(5000);
+    //  client.loop();
+    //   client.publish("@shadow/data/get", "");
+    
+
   }
-  
+
 }
