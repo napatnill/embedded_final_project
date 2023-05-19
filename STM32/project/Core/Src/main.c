@@ -41,6 +41,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -55,6 +56,7 @@ UART_HandleTypeDef huart2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM3_Init(void);
@@ -147,41 +149,52 @@ uint8_t DHT22_Read (GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 }
 
 
-double read_dust_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin){
+uint16_t adcbuff[2]={};
+float dustandgas[2]={};
+void read_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin){
 	int voMeasured = 0;
-	double calcVoltage = 0;
-	double dustDensity = 0;
+	float calcVoltage = 0;
+	float dust_voltage =0;
+	float gas_voltage = 0;
+	float gasDensity = 0;
+	float dustDensity = 0;
+	uint8_t sample =100;
+
+	for(int i=0;i<sample;i++){
 
 
 	HAL_GPIO_WritePin(GPIOx, GPIO_Pin, 0);
 	delay(280);
 
-	HAL_ADC_Start(hadc);
-	HAL_ADC_PollForConversion(hadc, HAL_MAX_DELAY);
-	voMeasured = HAL_ADC_GetValue(hadc);
+	HAL_ADC_Start_DMA(&hadc1,adcbuff , 2);
+	calcVoltage = adcbuff[0]*(5.0/4096);
+	gas_voltage += adcbuff[1]*(5.0/4096);
+	dust_voltage+= calcVoltage;
 
+	HAL_ADC_Stop_DMA(&hadc1);
 	delay(280);
 	HAL_GPIO_WritePin(GPIOx, GPIO_Pin, 1);
 	delay(9680);
+	HAL_Delay(1);
 
-	calcVoltage = voMeasured*(5.0/4096);
-	dustDensity = 170*calcVoltage-100;
+}
+	dust_voltage/=sample;
+	gas_voltage/=sample;
+
+	gasDensity = gas_voltage*1000;
+	dustDensity = 170*dust_voltage-100;
 
 	  if ( dustDensity < 0)
 	  {
 	    dustDensity = 0.00;
 	  }
-	  return dustDensity;
+
+	  dustandgas[0] =  dustDensity ;
+	  dustandgas[1] = gasDensity;
+	//  return dustDensity;
 
 }
-double read_gas(){
-	int voMeasured = 0;
-	double dust = 0;
-	HAL_ADC_PollForConversion(hadc, HAL_MAX_DELAY);
-	voMeasured = HAL_ADC_GetValue(hadc);
-	dust = voMeasured;
-	return dust
-}
+
 
 
 
@@ -225,6 +238,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_ADC1_Init();
   MX_TIM3_Init();
@@ -262,9 +276,9 @@ int main(void)
 			  - 0.0164248277778 * hu * hu + 0.002211732 * tem * tem * hu
 			  + 0.00072546 * tem * hu * hu - 0.000003582 * tem * tem * hu * hu;
 
-
-	  dust = read_dust_sensor(&hadc1, GPIOA, GPIO_PIN_6);
-	  gas = read_gas();
+read_sensor(&hadc1, GPIOA, GPIO_PIN_6);
+	  dust = dustandgas[0];
+	  gas=dustandgas[1];
 
 	if(hu>100 || tem > 50 || HI > 70){
 		HAL_Delay(100);
@@ -281,12 +295,11 @@ int main(void)
 			sz++;
 
 	HAL_UART_Transmit(&huart2, buffer, sz, HAL_MAX_DELAY);
-
+	HAL_UART_Transmit(&huart2,"\r", 1, HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart1, buffer, sz, HAL_MAX_DELAY);
 
 	timechk=0;
-
-	 	HAL_Delay(10000);
+	HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -370,7 +383,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 2;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
@@ -554,6 +567,22 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 
 }
 
