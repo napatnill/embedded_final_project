@@ -48,7 +48,7 @@ void reconnect() {
 
 
 void setup() {
-
+  pinMode(D0,OUTPUT);
   Serial.begin(9600);
   uart.begin(9600);
   Serial.println();
@@ -378,6 +378,7 @@ void comu() {
             poweron =1;
         }
     }
+    
     digitalWrite(D0,poweron);
     // delay(5000);
     //  client.loop();
