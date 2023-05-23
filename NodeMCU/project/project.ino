@@ -5,8 +5,10 @@
 
 SoftwareSerial uart(D7, D8);
 
-const char* ssid = "hpppp2g";
-const char* password = "kizumonogatari0885801586";
+//const char* ssid = "hpppp2g";
+//const char* password = "kizumonogatari0885801586";
+const char* ssid = "Hotspot-LAPTOP-POOH";
+const char* password = "u6C#FFys";
 const char* mqtt_server = "broker.netpie.io";
 const int mqtt_port = 1883;
 const char* mqtt_Client = "cfb7ca5d-f6f2-4107-95a6-52ee48d50280";
@@ -48,7 +50,7 @@ void reconnect() {
 
 
 void setup() {
-  pinMode(D0,OUTPUT);
+  pinMode(D0, OUTPUT);
   Serial.begin(9600);
   uart.begin(9600);
   Serial.println();
@@ -296,39 +298,39 @@ void comu() {
     }
 
     String data = "{\"data\": {\"hu\":";
-    String temp="";
+    String temp = "";
     int i = 0, size = s.length();
     while (i < size) {
       if (s[i] == '|')
         break;
-      temp+=s[i];
+      temp += s[i];
       data += s[i];
       i++;
     }
     hu = temp.toFloat();
-    temp="";
+    temp = "";
     i++;
     data += ", \"tem\":";
     while (i < size) {
       if (s[i] == '|')
         break;
-       temp+=s[i];
+      temp += s[i];
       data += s[i];
       i++;
     }
     tem = temp.toFloat();
-    temp="";
+    temp = "";
     i++;
     data += ", \"du\":";
     while (i < size) {
       if (s[i] == '|')
         break;
-      temp+=s[i];
+      temp += s[i];
       data += s[i];
       i++;
     }
     du = temp.toFloat();
-    temp="";
+    temp = "";
     i++;
     data += ", \"hi\":";
     while (i < size) {
@@ -342,14 +344,32 @@ void comu() {
     while (i < size) {
       if (s[i] == '|')
         break;
-       temp+=s[i];
+      temp += s[i];
       data += s[i];
       i++;
     }
-     gas = temp.toFloat();
+    gas = temp.toFloat();
+
+
+    if (mode == 0) {
+      poweron = 0;
+    } else if (mode == 1) {
+      poweron = 1;
+    } else {
+      if (poweron) {
+        if (hu > mx_hu || du > mx_du || gas > mx_gas || tem > mx_tem)
+          poweron = 0;
+      } else {
+        if (hu < mn_hu && du < mn_du && gas < mn_gas && tem < mn_tem)
+          poweron = 1;
+      }
+    }
+
+    digitalWrite(D0, poweron);
+
+     data += ", \"poweron\":" + String(poweron);
 
     data += "}}";
-
 
     data.toCharArray(msg, (data.length() + 1));
     Serial.println(msg);
@@ -361,25 +381,7 @@ void comu() {
     client.loop();
     client.publish("@shadow/data/update", msg);
 
-    if(mode==0){
-      poweron=0;
-    }
-    else if(mode==1){
-       poweron=1;
-    }
-    else {
-        if(poweron){
-            if(hu>mx_hu||du>mx_du||gas>mx_gas||tem>mx_tem)
-            poweron =0;
-        }
-        else
-        {
-          if(hu<mn_hu&&du<mn_du&&gas<mn_gas&&tem<mn_tem)
-            poweron =1;
-        }
-    }
     
-    digitalWrite(D0,poweron);
     // delay(5000);
     //  client.loop();
     //   client.publish("@shadow/data/get", "");
