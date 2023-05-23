@@ -1,14 +1,12 @@
 #MicroXplorer Configuration settings - do not modify
 ADC1.Channel-5\#ChannelRegularConversion=ADC_CHANNEL_11
-ADC1.Channel-6\#ChannelRegularConversion=ADC_CHANNEL_0
+ADC1.Channel-7\#ChannelRegularConversion=ADC_CHANNEL_0
 ADC1.DMAContinuousRequests=ENABLE
-ADC1.IPParameters=Rank-5\#ChannelRegularConversion,master,Channel-5\#ChannelRegularConversion,SamplingTime-5\#ChannelRegularConversion,NbrOfConversionFlag,NbrOfConversion,Rank-6\#ChannelRegularConversion,Channel-6\#ChannelRegularConversion,SamplingTime-6\#ChannelRegularConversion,DMAContinuousRequests
+ADC1.IPParameters=master,NbrOfConversionFlag,Rank-7\#ChannelRegularConversion,Channel-7\#ChannelRegularConversion,SamplingTime-7\#ChannelRegularConversion,NbrOfConversion,DMAContinuousRequests,Channel-5\#ChannelRegularConversion
 ADC1.NbrOfConversion=2
 ADC1.NbrOfConversionFlag=1
-ADC1.Rank-5\#ChannelRegularConversion=1
-ADC1.Rank-6\#ChannelRegularConversion=2
-ADC1.SamplingTime-5\#ChannelRegularConversion=ADC_SAMPLETIME_3CYCLES
-ADC1.SamplingTime-6\#ChannelRegularConversion=ADC_SAMPLETIME_3CYCLES
+ADC1.Rank-7\#ChannelRegularConversion=2
+ADC1.SamplingTime-7\#ChannelRegularConversion=ADC_SAMPLETIME_3CYCLES
 ADC1.master=1
 CAD.formats=
 CAD.pinconfig=

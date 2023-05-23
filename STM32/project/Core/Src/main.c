@@ -151,6 +151,8 @@ uint8_t DHT22_Read (GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 
 uint16_t adcbuff[2]={};
 float dustandgas[2]={};
+
+
 void read_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin){
 	int voMeasured = 0;
 	float calcVoltage = 0;
@@ -158,32 +160,37 @@ void read_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 	float gas_voltage = 0;
 	float gasDensity = 0;
 	float dustDensity = 0;
-	uint8_t sample =100;
+	uint8_t sample =200;
 
+//read dust
 	for(int i=0;i<sample;i++){
-
-
 	HAL_GPIO_WritePin(GPIOx, GPIO_Pin, 0);
 	delay(280);
-
-	HAL_ADC_Start_DMA(&hadc1,adcbuff , 2);
-
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcbuff , 2);
+	HAL_Delay(1);
 	dust_voltage+= adcbuff[0]*(5.0/4096);
-	gas_voltage += adcbuff[1]*(5.0/4096);
-
-
-	HAL_ADC_Stop_DMA(&hadc1);
 	delay(280);
 	HAL_GPIO_WritePin(GPIOx, GPIO_Pin, 1);
 	delay(9680);
 	HAL_Delay(1);
 
 }
+
+//read gas
+	HAL_Delay(100);
+
+	for(int i=0;i<sample;i++){
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcbuff , 2);
+	HAL_Delay(1);
+	gas_voltage += adcbuff[1]*(5.0/4096);
+	HAL_Delay(1);
+	}
+
 	dust_voltage/=sample;
 	gas_voltage/=sample;
 
 	gasDensity = gas_voltage*1000;
-	dustDensity = 170*dust_voltage-100;
+	dustDensity = 172*dust_voltage-100;
 
 	  if ( dustDensity < 0)
 	  {
@@ -192,6 +199,7 @@ void read_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 
 	  dustandgas[0] =  dustDensity ;
 	  dustandgas[1] = gasDensity;
+
 	//  return dustDensity;
 
 }
@@ -256,7 +264,9 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  { DHT22_Start(GPIOB, GPIO_PIN_0);
+  {
+	  // dht22 read
+	  DHT22_Start(GPIOB, GPIO_PIN_0);
 	  Presence = DHT22_Check_Response(GPIOB, GPIO_PIN_0);
 	  Rh_byte1 = DHT22_Read (GPIOB, GPIO_PIN_0);
    Rh_byte2 = DHT22_Read (GPIOB, GPIO_PIN_0);
@@ -272,22 +282,27 @@ int main(void)
 	  tem = (float) (TEMP/10.0);
 	  hu = (float) (RH/10.0);
 
+	  // cal HI(heatindex)
 	  float HI = -8.78469475556 + 1.61139411 * tem + 2.33854883889 * hu
 			  - 0.14611605 * tem * hu - 0.012308094 * tem * tem
 			  - 0.0164248277778 * hu * hu + 0.002211732 * tem * tem * hu
 			  + 0.00072546 * tem * hu * hu - 0.000003582 * tem * tem * hu * hu;
 
+
+	  //read gas and dust
 read_sensor(&hadc1, GPIOA, GPIO_PIN_6);
 	  dust = dustandgas[0];
 	  gas=dustandgas[1];
 
+	 // check error
 	if(hu>100 || tem > 50 || HI > 70){
 		HAL_Delay(100);
 		continue;
 	}
 
-	uint8_t sz=0;
 
+	//transit
+	uint8_t sz=0;
 	char buffer[150]="";
 	sprintf(buffer,"%.1f|%.1f|%.2f|%.2f|%.2f\n",
 	hu,tem,dust,HI,gas);
@@ -299,8 +314,13 @@ read_sensor(&hadc1, GPIOA, GPIO_PIN_6);
 	HAL_UART_Transmit(&huart2,"\r", 1, HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart1, buffer, sz, HAL_MAX_DELAY);
 
+
+	//check respon
 	timechk=0;
-	HAL_Delay(10000);
+
+	// main delay
+	HAL_Delay(5000);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
