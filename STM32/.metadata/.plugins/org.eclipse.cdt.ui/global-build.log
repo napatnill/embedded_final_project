@@ -6103,3 +6103,86 @@ Finished building: default.size.stdout
  
 Finished building: project.list
  
+19:54:23 **** Incremental Build of configuration Debug for project project ****
+make -j16 all 
+arm-none-eabi-size   project.elf 
+   text	   data	    bss	    dec	    hex	filename
+  33844	    484	   2060	  36388	   8e24	project.elf
+Finished building: default.size.stdout
+ 
+19:55:12 **** Incremental Build of configuration Debug for project project ****
+make -j16 all 
+arm-none-eabi-size   project.elf 
+   text	   data	    bss	    dec	    hex	filename
+  33844	    484	   2060	  36388	   8e24	project.elf
+Finished building: default.size.stdout
+ 
+19:57:48 **** Incremental Build of configuration Debug for project project ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F411xE -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'read_sensor':
+../Core/Src/main.c:158:8: warning: unused variable 'calcVoltage' [-Wunused-variable]
+  158 |  float calcVoltage = 0;
+      |        ^~~~~~~~~~~
+../Core/Src/main.c:157:6: warning: unused variable 'voMeasured' [-Wunused-variable]
+  157 |  int voMeasured = 0;
+      |      ^~~~~~~~~~
+../Core/Src/main.c: In function 'main':
+../Core/Src/main.c:307:2: warning: implicit declaration of function 'sprintf' [-Wimplicit-function-declaration]
+  307 |  sprintf(buffer,"%.1f|%.1f|%.2f|%.2f|%.2f\n",
+      |  ^~~~~~~
+../Core/Src/main.c:307:2: warning: incompatible implicit declaration of built-in function 'sprintf'
+../Core/Src/main.c:21:1: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+   20 | #include "main.h"
+  +++ |+#include <stdio.h>
+   21 | 
+../Core/Src/main.c:313:29: warning: pointer targets in passing argument 2 of 'HAL_UART_Transmit' differ in signedness [-Wpointer-sign]
+  313 |  HAL_UART_Transmit(&huart2, buffer, sz, HAL_MAX_DELAY);
+      |                             ^~~~~~
+      |                             |
+      |                             char *
+In file included from ../Core/Inc/stm32f4xx_hal_conf.h:411,
+                 from ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:29,
+                 from ../Core/Inc/main.h:30,
+                 from ../Core/Src/main.c:20:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:722:79: note: expected 'const uint8_t *' {aka 'const unsigned char *'} but argument is of type 'char *'
+  722 | HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
+      |                                                                ~~~~~~~~~~~~~~~^~~~~
+../Core/Src/main.c:314:28: warning: pointer targets in passing argument 2 of 'HAL_UART_Transmit' differ in signedness [-Wpointer-sign]
+  314 |  HAL_UART_Transmit(&huart2,"\r", 1, HAL_MAX_DELAY);
+      |                            ^~~~
+      |                            |
+      |                            char *
+In file included from ../Core/Inc/stm32f4xx_hal_conf.h:411,
+                 from ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:29,
+                 from ../Core/Inc/main.h:30,
+                 from ../Core/Src/main.c:20:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:722:79: note: expected 'const uint8_t *' {aka 'const unsigned char *'} but argument is of type 'char *'
+  722 | HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
+      |                                                                ~~~~~~~~~~~~~~~^~~~~
+../Core/Src/main.c:315:29: warning: pointer targets in passing argument 2 of 'HAL_UART_Transmit' differ in signedness [-Wpointer-sign]
+  315 |  HAL_UART_Transmit(&huart1, buffer, sz, HAL_MAX_DELAY);
+      |                             ^~~~~~
+      |                             |
+      |                             char *
+In file included from ../Core/Inc/stm32f4xx_hal_conf.h:411,
+                 from ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:29,
+                 from ../Core/Inc/main.h:30,
+                 from ../Core/Src/main.c:20:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:722:79: note: expected 'const uint8_t *' {aka 'const unsigned char *'} but argument is of type 'char *'
+  722 | HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
+      |                                                                ~~~~~~~~~~~~~~~^~~~~
+../Core/Src/main.c:259:11: warning: unused variable 'pinar' [-Wunused-variable]
+  259 |  uint16_t pinar[3]={GPIO_PIN_0,GPIO_PIN_1,GPIO_PIN_4};
+      |           ^~~~~
+arm-none-eabi-gcc -o "project.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Acer\Documents\GitHub\embedded_final_project\STM32\project\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="project.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: project.elf
+ 
+arm-none-eabi-size   project.elf 
+arm-none-eabi-objdump -h -S  project.elf  > "project.list"
+   text	   data	    bss	    dec	    hex	filename
+  33844	    484	   2060	  36388	   8e24	project.elf
+Finished building: default.size.stdout
+ 
+Finished building: project.list
+ 

@@ -160,7 +160,7 @@ void read_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 	float gas_voltage = 0;
 	float gasDensity = 0;
 	float dustDensity = 0;
-	uint8_t sample =200;
+	uint8_t sample =100;
 
 //read dust
 	for(int i=0;i<sample;i++){

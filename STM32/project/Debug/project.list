@@ -1649,8 +1649,8 @@ void read_sensor(ADC_HandleTypeDef* hadc,GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 	float dustDensity = 0;
  80011b2:	f04f 0300 	mov.w	r3, #0
  80011b6:	62fb      	str	r3, [r7, #44]	; 0x2c
-	uint8_t sample =200;
- 80011b8:	23c8      	movs	r3, #200	; 0xc8
+	uint8_t sample =100;
+ 80011b8:	2364      	movs	r3, #100	; 0x64
  80011ba:	75fb      	strb	r3, [r7, #23]
 
 //read dust
