@@ -5,10 +5,10 @@
 
 SoftwareSerial uart(D7, D8);
 
-//const char* ssid = "hpppp2g";
-//const char* password = "kizumonogatari0885801586";
-const char* ssid = "Hotspot-LAPTOP-POOH";
-const char* password = "u6C#FFys";
+const char* ssid = "hpppp2g";
+const char* password = "kizumonogatari0885801586";
+// const char* ssid = "Hotspot-LAPTOP-POOH";
+// const char* password = "u6C#FFys";
 const char* mqtt_server = "broker.netpie.io";
 const int mqtt_port = 1883;
 const char* mqtt_Client = "cfb7ca5d-f6f2-4107-95a6-52ee48d50280";
@@ -93,6 +93,11 @@ float du;
 float hu;
 float tem;
 float gas;
+
+bool o_hu=0;
+bool o_du=0;
+bool o_tem=0;
+bool o_gas=0;
 
 bool poweron = 0;
 
@@ -356,13 +361,36 @@ void comu() {
     } else if (mode == 1) {
       poweron = 1;
     } else {
-      if (poweron) {
-        if (hu > mx_hu || du > mx_du || gas > mx_gas || tem > mx_tem)
-          poweron = 0;
-      } else {
-        if (hu < mn_hu && du < mn_du && gas < mn_gas && tem < mn_tem)
-          poweron = 1;
-      }
+
+      if (hu >= mx_hu)
+        o_hu=1;
+      if (du >= mx_du)
+        o_du=1;
+      if (gas >= mx_gas)
+        o_gas=1;  
+      if (tem >= mx_tem)
+        o_tem=1;   
+
+      if(o_hu && hu <= mn_hu)
+          o_hu=0;
+      if(o_du && du <= mn_du)
+          o_du=0;   
+      if(o_gas && gas <= mn_gas)
+          o_gas=0; 
+      if(o_tem && gas <= mn_tem)
+          o_tem=0;    
+      if(o_hu||o_du||o_gas||o_tem)  
+        poweron = 0;
+      else
+        poweron = 1;
+
+      // if (poweron) {
+      //   if (hu > mx_hu || du > mx_du || gas > mx_gas || tem > mx_tem)
+      //     poweron = 0;
+      // } else {
+      //   if (hu < mn_hu && du < mn_du && gas < mn_gas && tem < mn_tem)
+      //     poweron = 1;
+      // }
     }
 
     digitalWrite(D0, poweron);
